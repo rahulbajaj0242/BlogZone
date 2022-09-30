@@ -62,6 +62,10 @@ app.get('/categories', (req, res) => {
     });
 });
 
+app.use((req, res) => {
+  res.status(404).send('Page Not Found');
+});
+
 blogService
   .initialize()
   .then(() => {
