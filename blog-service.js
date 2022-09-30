@@ -14,7 +14,6 @@ module.exports.initialize = () => {
           if (err) {
             reject(err);
           } else {
-            console.log(data);
             categories = JSON.parse(data);
             resolve('Success!');
           }
