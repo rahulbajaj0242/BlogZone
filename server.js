@@ -36,7 +36,6 @@ app.get('/blog', (req, res) => {
       res.json(posts);
     })
     .catch((err) => {
-      console.log(err);
       res.send("there's been an error!");
     });
 });
@@ -48,7 +47,6 @@ app.get('/posts', (req, res) => {
       res.json(posts);
     })
     .catch((err) => {
-      console.log(err);
       res.send("there's been an error!");
     });
 });
@@ -60,7 +58,6 @@ app.get('/categories', (req, res) => {
       res.json(categories);
     })
     .catch((err) => {
-      console.log(err);
       res.send("there's been an error!");
     });
 });
