@@ -87,7 +87,9 @@ app.get('/posts', (req, res) => {
       .catch((err) => {
         console.log(err);
       });
-  } else {
+
+    //if no query has been passes
+  } else if (JSON.stringify(req.query) === JSON.stringify({})) {
     blogService
       .getAllPosts()
       .then((posts) => {
@@ -96,6 +98,10 @@ app.get('/posts', (req, res) => {
       .catch((err) => {
         res.send("there's been an error!");
       });
+
+    //if wrong query name has been passed
+  } else {
+    res.status(404).send('Page Not Found');
   }
 });
 
