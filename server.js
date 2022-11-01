@@ -17,6 +17,10 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 
+const exphbs = require('express-handlebars');
+app.engine('.hbs', exphbs.engine({ extname: '.hbs' }));
+app.set('view engine', '.hbs');
+
 var HTTP_PORT = process.env.PORT || 8080;
 
 cloudinary.config({
@@ -27,6 +31,14 @@ cloudinary.config({
 });
 
 const upload = multer();
+
+app.use(function (req, res, next) {
+  let route = req.path.substring(1);
+  app.locals.activeRoute =
+    route == '/' ? '/' : '/' + route.replace(/\/(.*)/, '');
+  app.locals.viewingCategory = req.query.category;
+  next();
+});
 
 function onHttpStart() {
   console.log('Express http server listening on: ' + HTTP_PORT);
@@ -39,7 +51,9 @@ app.get('/', (req, res) => {
 });
 
 app.get('/about', (req, res) => {
-  res.sendFile(path.join(__dirname, '/views/about.html'));
+  res.render('about', {
+    layout: 'main',
+  });
 });
 
 app.get('/blog', (req, res) => {
@@ -65,7 +79,10 @@ app.get('/categories', (req, res) => {
 });
 
 app.get('/posts/add', (req, res) => {
-  res.sendFile(path.join(__dirname, '/views/addPost.html'));
+  // res.sendFile(path.join(__dirname, '/views/addPost.html'));
+  res.render('addPost', {
+    layout: 'main',
+  });
 });
 
 app.get('/posts', (req, res) => {
