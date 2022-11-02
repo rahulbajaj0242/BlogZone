@@ -81,7 +81,7 @@ function onHttpStart() {
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
-  res.redirect('/about');
+  res.redirect('/blog');
 });
 
 app.get('/about', (req, res) => {
@@ -89,17 +89,6 @@ app.get('/about', (req, res) => {
     layout: 'main',
   });
 });
-
-// app.get('/blog', (req, res) => {
-//   blogService
-//     .getPublishedPosts()
-//     .then((posts) => {
-//       res.json(posts);
-//     })
-//     .catch((err) => {
-//       res.send("there's been an error!");
-//     });
-// });
 
 app.get('/blog', async (req, res) => {
   // Declare an object to store properties for the view
