@@ -116,6 +116,13 @@ module.exports.addPost = (postData) => {
         typeof postData.published == 'undefined' ? false : true;
 
       postData.id = posts.length + 1;
+      var date = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = today.getFullYear();
+
+      date = yyyy + '-' + mm + '-' + dd;
+      postData.postDate = date;
       posts.push(postData);
       resolve(postData);
     } else {
