@@ -123,3 +123,19 @@ module.exports.addPost = (postData) => {
     }
   });
 };
+
+module.exports.getPublishedPostsByCategory = (category) => {
+  let publishedPosts = [];
+  return new Promise((resolve, reject) => {
+    posts.forEach((post) => {
+      if (post.published == true && post.category == category)
+        publishedPosts.push(post);
+    });
+
+    if (publishedPosts.length > 0) {
+      resolve(publishedPosts);
+    } else {
+      reject('No results returned');
+    }
+  });
+};
