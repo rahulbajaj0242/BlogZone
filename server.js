@@ -85,6 +85,7 @@ function onHttpStart() {
 }
 
 app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
   res.redirect('/blog');
@@ -191,7 +192,8 @@ app.get('/categories', (req, res) => {
   blogService
     .getCategories()
     .then((data) => {
-      res.render('categories', { categories: data });
+      if (data.length > 0) res.render('categories', { categories: data });
+      else res.render('categories', { message: 'no results' });
     })
     .catch((err) => {
       res.render('categories', { message: 'no results' });
@@ -199,10 +201,14 @@ app.get('/categories', (req, res) => {
 });
 
 app.get('/posts/add', (req, res) => {
-  // res.sendFile(path.join(__dirname, '/views/addPost.html'));
-  res.render('addPost', {
-    layout: 'main',
-  });
+  blogService
+    .getCategories()
+    .then((data) => {
+      res.render('addPost', { categories: data, layout: 'main' });
+    })
+    .catch((err) => {
+      res.render('addPost', { categories: [], layout: 'main' });
+    });
 });
 
 app.get('/posts', (req, res) => {
@@ -219,7 +225,8 @@ app.get('/posts', (req, res) => {
     blogService
       .getPostByMinDate(req.query.minDate)
       .then((data) => {
-        res.render('posts', { posts: data });
+        if (data.length > 0) res.render('posts', { posts: data });
+        else res.render('posts', { message: 'no results' });
       })
       .catch((err) => {
         res.render('posts', { message: 'no results' });
@@ -230,7 +237,8 @@ app.get('/posts', (req, res) => {
     blogService
       .getAllPosts()
       .then((data) => {
-        res.render('posts', { posts: data });
+        if (data.length > 0) res.render('posts', { posts: data });
+        else res.render('posts', { message: 'no results' });
       })
       .catch((err) => {
         res.render('posts', { message: 'no results' });
@@ -250,6 +258,34 @@ app.get('/post/:value', (req, res) => {
     })
     .catch((err) => {
       console.log(err);
+    });
+});
+
+app.get('/categories/add', (req, res) => {
+  res.render('addCategory', {
+    layout: 'main',
+  });
+});
+
+app.get('/categories/delete/:id', (req, res) => {
+  blogService
+    .deleteCategoryById(req.params.id)
+    .then(() => {
+      res.redirect('/categories');
+    })
+    .catch((err) => {
+      res.status(500).send('Unable to Remove Category / Category not found');
+    });
+});
+
+app.get('/posts/delete/:id', (req, res) => {
+  blogService
+    .deletePostById(req.params.id)
+    .then(() => {
+      res.redirect('/posts');
+    })
+    .catch((err) => {
+      res.status(500).send('Unable to Remove Post / Post not found');
     });
 });
 
@@ -295,6 +331,17 @@ app.post('/posts/add', upload.single('featureImage'), (req, res) => {
         console.log(err);
       });
   }
+});
+
+app.post('/categories/add', (req, res) => {
+  blogService
+    .addCategory(req.body)
+    .then((post) => {
+      res.redirect('/categories');
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 app.use((req, res) => {
