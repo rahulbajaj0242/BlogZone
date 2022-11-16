@@ -215,11 +215,11 @@ app.get('/posts', (req, res) => {
   if (req.query.category) {
     blogService
       .getPostsByCategory(req.query.category)
-      .then((category) => {
-        res.render('posts', { posts: category });
+      .then((data) => {
+        res.render('posts', { posts: data, layout: 'main' });
       })
       .catch((err) => {
-        res.render('posts', { message: 'no results' });
+        res.render('posts', { message: 'no results', layout: 'main' });
       });
   } else if (req.query.minDate) {
     blogService

@@ -130,7 +130,7 @@ module.exports.getPostsByCategory = (id) => {
   return new Promise((resolve, reject) => {
     Post.findAll({
       where: {
-        categoryID: id,
+        category: id,
       },
     })
       .then((data) => {
@@ -144,13 +144,12 @@ module.exports.getPostsByCategory = (id) => {
 
 module.exports.addPost = (postData) => {
   return new Promise((resolve, reject) => {
-    postData.published = postData.published ? true : false;
-
     for (field in postData) {
       if (postData[field] == '') {
         postData[field] = null;
       }
     }
+    postData.published = postData.published ? true : false;
     postData.postDate = new Date();
 
     Post.create(postData)
@@ -168,7 +167,7 @@ module.exports.getPublishedPostsByCategory = (id) => {
     Post.findAll({
       where: {
         published: true,
-        categoryID: id,
+        category: id,
       },
     })
       .then((data) => {
