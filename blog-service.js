@@ -1,148 +1,83 @@
-const fs = require('fs');
+const Sequelize = require('sequelize');
+var sequelize = new Sequelize(
+  'jgvlphxl',
+  'jgvlphxl',
+  'PRY8u9Wy0cUfsOSQ1R2C43Iw1BG7kXO5',
+  {
+    host: 'peanut.db.elephantsql.com',
+    dialect: 'postgres',
+    port: 5432,
+    dialectOptions: {
+      ssl: { rejectUnauthorized: false },
+    },
+    query: { raw: true },
+  }
+);
 
-let posts = [];
-let categories = [];
+var Post = sequelize.define('Post', {
+  body: Sequelize.TEXT,
+  title: Sequelize.STRING,
+  postDate: Sequelize.DATE,
+  featureImage: Sequelize.STRING,
+  published: Sequelize.BOOLEAN,
+});
+
+var Category = sequelize.define('Category', {
+  category: Sequelize.STRING,
+});
+
+Post.belongsTo(Category, { foreignKey: 'category' });
 
 module.exports.initialize = () => {
   return new Promise((resolve, reject) => {
-    fs.readFile('./data/posts.json', 'utf8', (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        posts = JSON.parse(data);
-        fs.readFile('./data/categories.json', 'utf8', (err, data) => {
-          if (err) {
-            reject(err);
-          } else {
-            categories = JSON.parse(data);
-            resolve('Success!');
-          }
-        });
-      }
-    });
+    reject();
   });
 };
 
 module.exports.getAllPosts = () => {
   return new Promise((resolve, reject) => {
-    if (posts.length > 0) {
-      resolve(posts);
-    } else {
-      reject('No results returned');
-    }
+    reject();
   });
 };
 
 module.exports.getPublishedPosts = () => {
-  let publishedPosts = [];
   return new Promise((resolve, reject) => {
-    posts.forEach((post) => {
-      if (post.published) publishedPosts.push(post);
-    });
-
-    if (publishedPosts.length > 0) {
-      resolve(publishedPosts);
-    } else {
-      reject('No results returned');
-    }
+    reject();
   });
 };
 
 module.exports.getPostById = (id) => {
-  let post;
   return new Promise((resolve, reject) => {
-    for (let i = 0; i < posts.length; i++) {
-      if (posts[i].id == id) {
-        post = posts[i];
-      }
-    }
-
-    if (post) {
-      resolve(post);
-    } else {
-      reject('Album not found!');
-    }
+    reject();
   });
 };
 
 module.exports.getPostByMinDate = (date) => {
-  let tempPosts = [];
   return new Promise((resolve, reject) => {
-    for (let i = 0; i < posts.length; i++) {
-      if (new Date(posts[i].postDate) >= new Date(date)) {
-        tempPosts.push(posts[i]);
-      }
-    }
-
-    if (tempPosts.length != 0) {
-      resolve(tempPosts);
-    } else {
-      reject('no results returned');
-    }
+    reject();
   });
 };
 
 module.exports.getCategories = () => {
   return new Promise((resolve, reject) => {
-    if (categories.length > 0) {
-      resolve(categories);
-    } else {
-      reject('No results returned');
-    }
+    reject();
   });
 };
 
 module.exports.getPostsByCategory = (id) => {
-  let tempPosts = [];
   return new Promise((resolve, reject) => {
-    for (let i = 0; i < posts.length; i++) {
-      if (posts[i].category == id) {
-        tempPosts.push(posts[i]);
-      }
-    }
-
-    if (tempPosts.length != 0) {
-      resolve(tempPosts);
-    } else {
-      reject('No records found!');
-    }
+    reject();
   });
 };
 
 module.exports.addPost = (postData) => {
   return new Promise((resolve, reject) => {
-    if (postData) {
-      postData.published =
-        typeof postData.published == 'undefined' ? false : true;
-
-      postData.id = posts.length + 1;
-      var date = new Date();
-      var dd = String(today.getDate()).padStart(2, '0');
-      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-      var yyyy = today.getFullYear();
-
-      date = yyyy + '-' + mm + '-' + dd;
-      postData.postDate = date;
-      posts.push(postData);
-      resolve(postData);
-    } else {
-      reject('Empty Object');
-    }
+    reject();
   });
 };
 
 module.exports.getPublishedPostsByCategory = (category) => {
-  let publishedPosts = [];
   return new Promise((resolve, reject) => {
-    posts.forEach((post) => {
-      if (post.published == true && post.category == category)
-        publishedPosts.push(post);
-    });
-
-    if (publishedPosts.length > 0) {
-      resolve(publishedPosts);
-    } else {
-      reject('No results returned');
-    }
+    reject();
   });
 };
