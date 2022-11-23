@@ -11,13 +11,15 @@ var userSchema = new Schema({
   loginHistory: [{ dateTime: Date, userAgent: String }],
 });
 
-let Company = mongoose.model('web322_companies', companySchema);
+// let Company = mongoose.model('web322_companies', companySchema);
 
 module.exports.initialize = function () {
   return new Promise(function (resolve, reject) {
-    let db = mongoose.createConnection('connectionString');
+    let db = mongoose.createConnection(
+      'mongodb+srv://dbUser:hnu6yxq-hjd-bht4JZU@senecaweb.xbzg820.mongodb.net/?retryWrites=true&w=majority'
+    );
     db.on('error', (err) => {
-      reject(err); // reject the promise with the provided error
+      reject(err);
     });
     db.once('open', () => {
       User = db.model('users', userSchema);

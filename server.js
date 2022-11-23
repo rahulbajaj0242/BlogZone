@@ -351,6 +351,7 @@ app.use((req, res) => {
 
 blogService
   .initialize()
+  .then(authData.initialize)
   .then(() => {
     app.listen(HTTP_PORT, onHttpStart);
   })
