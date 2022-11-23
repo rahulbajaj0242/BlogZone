@@ -10,6 +10,7 @@
 
 var express = require('express');
 var blogService = require('./blog-service');
+var authData = require('./auth-service');
 var path = require('path');
 var app = express();
 
