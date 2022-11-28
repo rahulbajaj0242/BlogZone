@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 var Schema = mongoose.Schema;
 
 var userSchema = new Schema({
@@ -11,7 +12,6 @@ var userSchema = new Schema({
   loginHistory: [{ dateTime: Date, userAgent: String }],
 });
 
-// let Company = mongoose.model('web322_companies', companySchema);
 let User;
 
 module.exports.initialize = () => {
@@ -34,18 +34,28 @@ module.exports.registerUser = (userData) => {
     if (userData.password != userData.password2) {
       reject('Passwords do not match');
     } else {
-      let newUser = new User(userData);
-      newUser
-        .save()
-        .then(() => {
-          resolve();
+      bcrypt
+        .hash(userData.password, 10)
+        .then((hash) => {
+          userData.password = hash;
+          let newUser = new User(userData);
+          newUser
+            .save()
+            .then(() => {
+              console.log(newUser);
+              resolve();
+            })
+            .catch((err) => {
+              if (err.code == 11000) {
+                reject('User Name already taken');
+              } else {
+                reject('There was an error creating the user: ' + err);
+              }
+            });
         })
         .catch((err) => {
-          if (err.code == 11000) {
-            reject('User Name already taken');
-          } else {
-            reject('There was an error creating the user: ' + err);
-          }
+          console.log(err);
+          reject('There was an error encrypting the password');
         });
     }
   });
@@ -56,28 +66,28 @@ module.exports.checkUser = (userData) => {
     User.find({ userName: userData.userName })
       .exec()
       .then((users) => {
-        if (users.length === 0) {
-          reject('Unable to find user: ' + userData.userName);
-        }
-        if (users[0].password != userData.password) {
-          reject('Incorrect Password for user: ' + userData.userName);
-        } else {
-          users[0].loginHistory.push({
-            dateTime: newDate().toString(),
-            userAgent: userData.userAgent,
-          });
-          User.updateOne(
-            { userName: users[0].userName },
-            { $set: { loginHistory: users[0].loginHistory } }
-          )
-            .exec()
-            .then(() => {
-              resolve(users[0]);
-            })
-            .catch((err) => {
-              reject('There was an error verifying the user: ' + err);
+        console.log(users);
+        bcrypt.compare(userData.password, users[0].password).then((res) => {
+          if (res === true) {
+            users[0].loginHistory.push({
+              dateTime: new Date().toString(),
+              userAgent: userData.userAgent,
             });
-        }
+            User.updateOne(
+              { userName: users[0].userName },
+              { $set: { loginHistory: users[0].loginHistory } }
+            )
+              .exec()
+              .then(function () {
+                resolve(users[0]);
+              })
+              .catch(function (err) {
+                reject('There was an error verifying the username: ' + err);
+              });
+          } else if (res === false) {
+            reject('Incorrect Password for user: ' + userData.userName);
+          }
+        });
       })
       .catch(() => {
         reject('Unable to find user:  ' + userData.userName);

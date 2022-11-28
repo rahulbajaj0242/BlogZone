@@ -127,6 +127,7 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
+  req.session.reset();
   res.redirect('/');
 });
 
@@ -400,6 +401,7 @@ app.post('/register', (req, res) => {
     .then((data) => {
       console.log(data);
       res.render('register', {
+        layout: 'main',
         successMessage: 'User created',
       });
     })
@@ -419,9 +421,9 @@ app.post('/login', (req, res) => {
     .checkUser(req.body)
     .then((user) => {
       req.session.user = {
-        userName: req.body.userName,
-        email: req.body.email,
-        loginHistory: req.body.loginHistory,
+        userName: user.userName,
+        email: user.email,
+        loginHistory: user.loginHistory,
       };
       res.redirect('/posts');
     })
@@ -437,7 +439,7 @@ app.use((req, res) => {
   res.status(404).send('Page Not Found');
 });
 
-blogData
+blogService
   .initialize()
   .then(authData.initialize)
   .then(function () {
