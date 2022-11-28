@@ -21,6 +21,7 @@ const streamifier = require('streamifier');
 const exphbs = require('express-handlebars');
 
 const stripJs = require('strip-js');
+const clientSessions = require('client-sessions');
 
 app.use(function (req, res, next) {
   let route = req.path.substring(1);
@@ -70,6 +71,15 @@ app.engine(
 );
 app.set('view engine', '.hbs');
 
+app.use(
+  clientSessions({
+    cookieName: 'session',
+    secret: 'WEB322-APP',
+    duration: 2 * 60 * 1000,
+    activeDuration: 1000 * 60,
+  })
+);
+
 var HTTP_PORT = process.env.PORT || 8080;
 
 cloudinary.config({
@@ -87,6 +97,10 @@ function onHttpStart() {
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
+app.use(function (req, res, next) {
+  res.locals.session = req.session;
+  next();
+});
 
 app.get('/', (req, res) => {
   res.redirect('/blog');
@@ -349,12 +363,14 @@ app.use((req, res) => {
   res.status(404).send('Page Not Found');
 });
 
-blogService
+blogData
   .initialize()
   .then(authData.initialize)
-  .then(() => {
-    app.listen(HTTP_PORT, onHttpStart);
+  .then(function () {
+    app.listen(HTTP_PORT, function () {
+      console.log('app listening on: ' + HTTP_PORT);
+    });
   })
-  .catch((err) => {
-    console.log(err);
+  .catch(function (err) {
+    console.log('unable to start server: ' + err);
   });
