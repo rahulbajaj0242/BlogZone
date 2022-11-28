@@ -102,12 +102,42 @@ app.use(function (req, res, next) {
   next();
 });
 
+function ensureLogin(req, res, next) {
+  if (!req.session.user) {
+    res.redirect('/login');
+  } else {
+    next();
+  }
+}
+
 app.get('/', (req, res) => {
   res.redirect('/blog');
 });
 
 app.get('/about', (req, res) => {
   res.render('about', {
+    layout: 'main',
+  });
+});
+
+app.get('/login', (req, res) => {
+  res.render('login', {
+    layout: 'main',
+  });
+});
+
+app.get('/logout', (req, res) => {
+  res.redirect('/');
+});
+
+app.get('/register', (req, res) => {
+  res.render('register', {
+    layout: 'main',
+  });
+});
+
+app.get('/userHistory', ensureLogin, (req, res) => {
+  res.render('userHistory', {
     layout: 'main',
   });
 });
@@ -203,7 +233,7 @@ app.get('/blog/:id', async (req, res) => {
   res.render('blog', { data: viewData });
 });
 
-app.get('/categories', (req, res) => {
+app.get('/categories', ensureLogin, (req, res) => {
   blogService
     .getCategories()
     .then((data) => {
@@ -215,7 +245,7 @@ app.get('/categories', (req, res) => {
     });
 });
 
-app.get('/posts/add', (req, res) => {
+app.get('/posts/add', ensureLogin, (req, res) => {
   blogService
     .getCategories()
     .then((data) => {
@@ -226,7 +256,7 @@ app.get('/posts/add', (req, res) => {
     });
 });
 
-app.get('/posts', (req, res) => {
+app.get('/posts', ensureLogin, (req, res) => {
   if (req.query.category) {
     blogService
       .getPostsByCategory(req.query.category)
@@ -265,7 +295,7 @@ app.get('/posts', (req, res) => {
   }
 });
 
-app.get('/post/:value', (req, res) => {
+app.get('/post/:value', ensureLogin, (req, res) => {
   blogService
     .getPostById(req.params.value)
     .then((post) => {
@@ -276,13 +306,13 @@ app.get('/post/:value', (req, res) => {
     });
 });
 
-app.get('/categories/add', (req, res) => {
+app.get('/categories/add', ensureLogin, (req, res) => {
   res.render('addCategory', {
     layout: 'main',
   });
 });
 
-app.get('/categories/delete/:id', (req, res) => {
+app.get('/categories/delete/:id', ensureLogin, (req, res) => {
   blogService
     .deleteCategoryById(req.params.id)
     .then(() => {
@@ -293,7 +323,7 @@ app.get('/categories/delete/:id', (req, res) => {
     });
 });
 
-app.get('/posts/delete/:id', (req, res) => {
+app.get('/posts/delete/:id', ensureLogin, (req, res) => {
   blogService
     .deletePostById(req.params.id)
     .then(() => {
@@ -304,51 +334,56 @@ app.get('/posts/delete/:id', (req, res) => {
     });
 });
 
-app.post('/posts/add', upload.single('featureImage'), (req, res) => {
-  if (req.file) {
-    let streamUpload = (req) => {
-      return new Promise((resolve, reject) => {
-        let stream = cloudinary.uploader.upload_stream((error, result) => {
-          if (result) {
-            resolve(result);
-          } else {
-            reject(error);
-          }
+app.post(
+  '/posts/add',
+  ensureLogin,
+  upload.single('featureImage'),
+  (req, res) => {
+    if (req.file) {
+      let streamUpload = (req) => {
+        return new Promise((resolve, reject) => {
+          let stream = cloudinary.uploader.upload_stream((error, result) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(error);
+            }
+          });
+
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
         });
+      };
 
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      async function upload(req) {
+        let result = await streamUpload(req);
+        console.log(result);
+        return result;
+      }
+
+      upload(req).then((uploaded) => {
+        processPost(uploaded.url);
       });
-    };
-
-    async function upload(req) {
-      let result = await streamUpload(req);
-      console.log(result);
-      return result;
+    } else {
+      processPost('');
     }
 
-    upload(req).then((uploaded) => {
-      processPost(uploaded.url);
-    });
-  } else {
-    processPost('');
+    function processPost(imageUrl) {
+      req.body.featureImage = imageUrl;
+
+      // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
+      blogService
+        .addPost(req.body)
+        .then((post) => {
+          res.redirect('/posts');
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   }
+);
 
-  function processPost(imageUrl) {
-    req.body.featureImage = imageUrl;
-
-    // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
-    blogService
-      .addPost(req.body)
-      .then((post) => {
-        res.redirect('/posts');
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-});
-
-app.post('/categories/add', (req, res) => {
+app.post('/categories/add', ensureLogin, (req, res) => {
   blogService
     .addCategory(req.body)
     .then((post) => {
@@ -356,6 +391,45 @@ app.post('/categories/add', (req, res) => {
     })
     .catch((err) => {
       console.log(err);
+    });
+});
+
+app.post('/register', (req, res) => {
+  authData
+    .registerUser(req.body)
+    .then((data) => {
+      console.log(data);
+      res.render('register', {
+        successMessage: 'User created',
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.render('register', {
+        errorMessage: err,
+        userName: req.body.userName,
+      });
+    });
+});
+
+app.post('/login', (req, res) => {
+  req.body.userAgent = req.get('User-Agent');
+
+  authData
+    .checkUser(req.body)
+    .then((user) => {
+      req.session.user = {
+        userName: req.body.userName,
+        email: req.body.email,
+        loginHistory: req.body.loginHistory,
+      };
+      res.redirect('/posts');
+    })
+    .catch((err) => {
+      res.render('login', {
+        errorMessage: err,
+        userName: req.body.userName,
+      });
     });
 });
 
