@@ -19,7 +19,11 @@
               type='text'
               placeholder='User Name'
               required=''
-              value=''
+              {{#if userName}}
+                value={{userName}}
+              {{else}}
+                value=""
+              {{/if}}
             />
           </div>
         </div>
