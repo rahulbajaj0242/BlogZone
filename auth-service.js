@@ -66,7 +66,6 @@ module.exports.checkUser = (userData) => {
     User.find({ userName: userData.userName })
       .exec()
       .then((users) => {
-        console.log(users);
         bcrypt.compare(userData.password, users[0].password).then((res) => {
           if (res === true) {
             users[0].loginHistory.push({
